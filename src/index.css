@@ -162,7 +162,7 @@
 
 /* Smooth scroll pour toute la page */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 /* Transitions globales */
