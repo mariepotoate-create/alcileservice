@@ -10,12 +10,15 @@ import {
   Linkedin,
   Twitter,
   Home,
+  ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileSubmenuStack, setMobileSubmenuStack] = useState<string[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,12 +34,34 @@ const Header: React.FC = () => {
       if (e.key === "Escape") {
         setIsMenuOpen(false);
         setActiveDropdown(null);
+        setMobileSubmenuStack([]);
       }
     };
     if (isMenuOpen) window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isMenuOpen]);
 
+  // Fonction pour ouvrir un sous-menu mobile
+  const openMobileSubmenu = (menuName: string) => {
+    setMobileSubmenuStack(prev => [...prev, menuName]);
+    setActiveDropdown(menuName);
+  };
+
+  // Fonction pour revenir au menu précédent
+  const goBackMobileSubmenu = () => {
+    setMobileSubmenuStack(prev => {
+      const newStack = prev.slice(0, -1);
+      setActiveDropdown(newStack.length > 0 ? newStack[newStack.length - 1] : null);
+      return newStack;
+    });
+  };
+
+  // Fonction pour fermer complètement le menu mobile
+  const closeMobileMenu = () => {
+    setIsMenuOpen(false);
+    setActiveDropdown(null);
+    setMobileSubmenuStack([]);
+  };
   const menuItems = [
     { name: "ACCUEIL", path: "/", icon: Home },
     {
@@ -78,6 +103,12 @@ const Header: React.FC = () => {
     { name: "CONTACT", path: "/contact" },
   ];
 
+  // Obtenir le menu actuellement affiché
+  const getCurrentMenu = () => {
+    if (mobileSubmenuStack.length === 0) return null;
+    const currentMenuName = mobileSubmenuStack[mobileSubmenuStack.length - 1];
+    return menuItems.find(item => item.name === currentMenuName);
+  };
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -187,8 +218,11 @@ const Header: React.FC = () => {
             <button
               className="xl:hidden p-2"
               onClick={() => {
-                setIsMenuOpen((s) => !s);
-                setActiveDropdown(null);
+                if (isMenuOpen) {
+                  closeMobileMenu();
+                } else {
+                  setIsMenuOpen(true);
+                }
               }}
               aria-label="Ouvrir le menu"
               aria-expanded={isMenuOpen}
@@ -218,76 +252,97 @@ const Header: React.FC = () => {
           >
             {/* Header mobile */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-              <Logo variant="dark" size="md" />
-              <button onClick={() => setIsMenuOpen(false)} aria-label="Fermer le menu">
+              {mobileSubmenuStack.length > 0 ? (
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={goBackMobileSubmenu}
+                    className="flex items-center space-x-2 text-[#00499D] hover:text-[#FAA800] transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span className="font-medium">Retour</span>
+                  </button>
+                  <div className="text-gray-400">|</div>
+                  <span className="text-gray-700 font-medium">
+                    {getCurrentMenu()?.name}
+                  </span>
+                </div>
+              ) : (
+                <Logo variant="dark" size="md" />
+              )}
+              <button onClick={closeMobileMenu} aria-label="Fermer le menu">
                 <X className="w-6 h-6 text-gray-700" />
               </button>
             </div>
 
             {/* Contenu mobile */}
             <div className="px-4 py-6 space-y-4 overflow-y-auto h-[calc(100vh-4rem)]">
-              {menuItems.map((item) => {
-                const ItemIcon = (item as any).icon as React.ComponentType<{ className?: string }>;
-                const isOpen = activeDropdown === item.name;
+              {/* Affichage conditionnel : menu principal ou sous-menu */}
+              {mobileSubmenuStack.length === 0 ? (
+                // Menu principal
+                menuItems.map((item) => {
+                  const ItemIcon = (item as any).icon as React.ComponentType<{ className?: string }>;
+                  const isOpen = activeDropdown === item.name;
 
-                return (
-                  <div key={item.name}>
-                    <button
-                      onClick={() => {
-                        if (item.submenu) {
-                          setActiveDropdown(isOpen ? null : item.name);
-                        } else {
-                          setIsMenuOpen(false);
-                          navigate(item.path);
-                        }
-                      }}
-                      className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 ${
-                        location.pathname === item.path
-                          ? "bg-[#FAA800] text-white"
-                          : "text-gray-700 hover:bg-blue-50 hover:text-[#00499D]"
-                      }`}
-                      aria-expanded={!!item.submenu ? isOpen : undefined}
+                  return (
+                    <div key={item.name}>
+                      <button
+                        onClick={() => {
+                          if (item.submenu) {
+                            openMobileSubmenu(item.name);
+                          } else {
+                            closeMobileMenu();
+                            navigate(item.path);
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 hover:scale-105 ${
+                          location.pathname === item.path
+                            ? "bg-[#FAA800] text-white"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-[#00499D]"
+                        }`}
+                        aria-expanded={!!item.submenu ? isOpen : undefined}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {item.icon && <ItemIcon className="w-5 h-5" />}
+                          <span className="font-medium text-lg">{item.name}</span>
+                        </div>
+                        {item.submenu && (
+                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                // Sous-menu actuel
+                (() => {
+                  const currentMenu = getCurrentMenu();
+                  if (!currentMenu?.submenu) return null;
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-3"
                     >
-                      <div className="flex items-center space-x-2">
-                        {item.icon && <ItemIcon className="w-4 h-4" />}
-                        <span className="font-medium">{item.name}</span>
-                      </div>
-                      {item.submenu && (
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-300 ${
-                            isOpen ? "rotate-180 text-[#00499D]" : "text-gray-500"
+                      {currentMenu.submenu.map((subItem) => (
+                        <Link
+                          key={subItem.name}
+                          to={subItem.path}
+                          className={`block px-4 py-3 rounded-lg transition-all duration-300 hover:scale-105 ${
+                            location.pathname === subItem.path
+                              ? "bg-[#FAA800] text-white"
+                              : "text-gray-700 hover:bg-blue-50 hover:text-[#00499D]"
                           }`}
-                        />
-                      )}
-                    </button>
-
-                    {/* Sous-menu mobile accordéon */}
-                    <AnimatePresence initial={false}>
-                      {item.submenu && isOpen && (
-                        <motion.div
-                          key={`submenu-${item.name}`}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="ml-6 mt-2 space-y-1 border-l border-gray-200 pl-3 overflow-hidden"
+                          onClick={closeMobileMenu}
                         >
-                          {item.submenu.map((subItem) => (
-                            <Link
-                              key={subItem.name}
-                              to={subItem.path}
-                              className="block px-4 py-2 text-sm text-gray-600 hover:text-[#00499D] hover:translate-x-2 transition-all duration-300"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              {subItem.name}
-                            </Link>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
+                          <span className="font-medium text-lg">{subItem.name}</span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  );
+                })()
+              )}
             </div>
           </motion.div>
         )}
