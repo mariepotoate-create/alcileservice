@@ -152,8 +152,8 @@ const AboutPage: React.FC = () => {
     ]
   };
 
-  const AboutSection = ({ title, subtitle, children, bgColor = 'bg-white' }) => (
-    <section className={`py-16 md:py-20 ${bgColor}`}>
+  const AboutSection = ({ title, subtitle, children }) => (
+    <section className="py-16 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-[#00499D] mb-4">{title}</h2>
@@ -237,28 +237,24 @@ const AboutPage: React.FC = () => {
     </div>
   );
 
-  // Correction de la frise chronologique
-  const TimelineItem = ({ achievement, index }) => {
-    const isEven = index % 2 === 0;
-    return (
-      <div className={`flex items-center w-full my-6 md:my-12 ${isEven ? 'justify-start' : 'justify-end'}`}>
-        <div className={`w-full md:w-1/2 flex ${isEven ? 'justify-end md:justify-end' : 'justify-start md:justify-start'}`}>
-          <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full md:max-w-md">
-            <div className={`flex items-center space-x-3 mb-4 ${isEven ? 'justify-end' : 'justify-start'}`}>
-              <Calendar className="w-6 h-6 text-[#FAA800]" />
-              <span className="font-bold text-[#00499D] text-xl md:text-2xl">{achievement.year}</span>
-            </div>
-            <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-2">{achievement.title}</h3>
-            <p className="text-gray-600 leading-relaxed text-sm">{achievement.description}</p>
+  const TimelineItem = ({ achievement, index }) => (
+    <div className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} relative`}>
+      <div className={`w-full md:w-1/2 ${index % 2 === 0 ? 'pr-8 md:pr-12 text-right' : 'pl-8 md:pl-12'}`}>
+        <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className={`flex items-center space-x-3 mb-4 ${index % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+            <Calendar className="w-6 h-6 text-[#FAA800]" />
+            <span className="font-bold text-[#00499D] text-xl md:text-2xl">{achievement.year}</span>
           </div>
-        </div>
-        <div className="hidden md:flex flex-col items-center w-24 mx-4">
-          <div className="w-8 h-8 bg-[#FAA800] rounded-full border-4 border-white shadow-lg z-10"></div>
-          <div className="h-full w-1 bg-gradient-to-b from-[#FAA800] to-[#00499D] absolute inset-0 transform -translate-y-1/2"></div>
+          <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-2">{achievement.title}</h3>
+          <p className="text-gray-600 leading-relaxed text-sm">{achievement.description}</p>
         </div>
       </div>
-    );
-  };
+      <div className="absolute left-1/2 transform -translate-x-1/2 z-10 hidden md:block">
+        <div className="w-8 h-8 bg-[#FAA800] rounded-full border-4 border-white shadow-lg"></div>
+      </div>
+      <div className="w-full md:w-1/2"></div>
+    </div>
+  );
 
   const CertificationCard = ({ cert }) => (
     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -364,7 +360,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Values */}
-      <AboutSection title="Nos Valeurs Fondamentales" subtitle="Plus de 30 entreprises et associations partenaires pour vos stages et votre insertion professionnelle" bgColor="bg-white">
+      <AboutSection title="Nos Valeurs Fondamentales" subtitle="Plus de 30 entreprises et associations partenaires pour vos stages et votre insertion professionnelle">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {data.values.map((value, index) => <ValueCard key={index} value={value} />)}
         </div>
@@ -372,7 +368,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Leadership Team */}
-      <AboutSection title="Équipe de Supervision" subtitle="Une supervision expérimentée et engagée pour votre réussite" bgColor="bg-gray-50">
+      <AboutSection title="Équipe de Supervision" subtitle="Une supervision expérimentée et engagée pour votre réussite">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {data.leadership.map((member, index) => (
             <MemberCard key={index} member={member} initialColor={member.color} />
@@ -382,7 +378,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Administrative Staff */}
-      <AboutSection title="Équipe Administrative" subtitle="Une équipe administrative dédiée à votre accompagnement" bgColor="bg-white">
+      <AboutSection title="Équipe Administrative" subtitle="Une équipe administrative dédiée à votre accompagnement">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.administrativeStaff.map((person, index) => <StaffCard key={index} person={person} />)}
         </div>
@@ -390,7 +386,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Teaching Staff */}
-      <AboutSection title="Nos Formateurs Experts" subtitle="Des maîtres artisans expérimentés, diplômés de l'Enseignement Technique et de la Formation Professionnelle" bgColor="bg-gray-50">
+      <AboutSection title="Nos Formateurs Experts" subtitle="Des maîtres artisans expérimentés, diplômés de l'Enseignement Technique et de la Formation Professionnelle">
         <div className="space-y-8 md:space-y-12">
           {data.teachingStaff.map((team, index) => <TeamCard key={index} {...team} />)}
         </div>
@@ -409,7 +405,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Partners */}
-      <AboutSection title="Entreprises Partenaires Principales" subtitle="Nos partenaires stratégiques pour l'équipement et la formation" bgColor="bg-white">
+      <AboutSection title="Entreprises Partenaires Principales" subtitle="Nos partenaires stratégiques pour l'équipement et la formation">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {data.partners.map((partner, index) => <PartnerCard key={index} partner={partner} />)}
         </div>
@@ -432,10 +428,10 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Timeline */}
-      <AboutSection title="Notre Parcours" subtitle="5 années d'excellence au service de la formation professionnelle" bgColor="bg-gray-50">
+      <AboutSection title="Notre Parcours" subtitle="5 années d'excellence au service de la formation professionnelle">
         <div className="relative">
-          <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-[#FAA800] to-[#00499D]"></div>
-          <div className="space-y-4">
+          <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-[#FAA800] to-[#00499D] hidden md:block"></div>
+          <div className="space-y-12">
             {data.timeline.map((achievement, index) => (
               <TimelineItem key={index} achievement={achievement} index={index} />
             ))}
@@ -453,7 +449,7 @@ const AboutPage: React.FC = () => {
       <hr className="my-0 border-gray-200" />
 
       {/* Location */}
-      <AboutSection title="Notre Localisation" subtitle="Au cœur d'Abomey-Calavi, facilement accessible" bgColor="bg-gray-50">
+      <AboutSection title="Notre Localisation" subtitle="Au cœur d'Abomey-Calavi, facilement accessible">
         <div className="bg-white rounded-2xl overflow-hidden shadow-xl">
           <div className="grid lg:grid-cols-2">
             <div className="p-6 md:p-8 lg:p-12">
